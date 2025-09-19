@@ -2,6 +2,7 @@ class Character extends MovableObject{
 
     height = 280;
     y = 155; 
+    characterLifePoints = 100;
     speed = 10;
     lastInputTime = Date.now();
     idleTimeout = 6000;
@@ -9,6 +10,13 @@ class Character extends MovableObject{
     isLeftMovementAllowed = true;
     characterMovementLoop;
     characterAnimationLoop;
+
+    offset = {
+        top: 120,
+        left: 18,
+        right: 28,
+        bottom: 13
+    };
 
     IMAGES_IDLE = [
         'img/img/2_character_pepe/1_idle/idle/I-1.png',
@@ -136,7 +144,7 @@ class Character extends MovableObject{
     }
 
     updateLastInputTime() {
-        if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT || this.world.keyboard.SPACE) {
+        if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT || this.world.keyboard.SPACE || this.world.keyboard.D) {
             this.lastInputTime = Date.now();
         }
     }
@@ -144,21 +152,30 @@ class Character extends MovableObject{
     startAnimationLoop() {
         this.characterAnimationLoop = setInterval(() => {
             if (this.isDead()) {
-                this.playDeathAnimation(); 
-            } else if (this.isHurt()) {
+                this.playDeathAnimation();
+                return;
+            } 
+            else if (this.isHurt()) {
                 this.playAnimation(this.IMAGES_HURT);
-            } else if (this.isAboveGround()) {
+            } 
+            else if (this.isAboveGround()) {
                 this.playAnimation(this.IMAGES_JUMPING);
-            } else if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
+            } 
+            else if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
                 this.playAnimation(this.IMAGES_WALKING);
-            } else {
-                if (this.hasBeenIdle()) {
-                    this.playAnimation(this.IMAGES_LONG_IDLE);
-                } else {
-                    this.playAnimation(this.IMAGES_IDLE);
-                }
+            } 
+            else {
+                this.playIdleAnimations();
             }
-        }, 50); 
+        }, 120);
+    }
+
+    playIdleAnimations(){
+        if(this.hasBeenIdle()){
+            this.playAnimation(this.IMAGES_LONG_IDLE);
+        } else {
+            this.playAnimation(this.IMAGES_IDLE);
+        }
     }
 
     playDeathAnimation() {
@@ -202,5 +219,14 @@ class Character extends MovableObject{
     jump(){
         this.speedY = 30;
     }
+
+    hit() {
+    this.characterLifePoints -= 4;
+    if (this.characterLifePoints < 0) {
+        this.characterLifePoints = 0;
+    } else {
+        this.lastHit = new Date().getTime();
+    }
+}
 
 }

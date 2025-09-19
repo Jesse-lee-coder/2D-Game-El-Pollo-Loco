@@ -6,6 +6,7 @@ class MovableObject extends DrawableObject {
     acceleration = 2.5;
     energy = 100;
     lastHit = 0;
+    groundY;
     isDeadAnimationPlayed = false;
 
     applyGravity(){
@@ -19,18 +20,23 @@ class MovableObject extends DrawableObject {
     }
 
     isAboveGround(){
-        return this.y < 155;
+        if (this instanceof ThrowableObject) { // Throwable Object should always fall
+            return true;
+        } else {
+            return this.y < 155;
+        }
+        
     }
 
-    isColliding(mo) {
-        return this.x + this.width > mo.x &&
-        this.y + this.height > mo.y &&
-        this.x < mo.x &&
-        this.y < mo.y + mo.height;
+    isColliding(movableObject) {
+        return this.x + this.width - this.offset.right > movableObject.x + movableObject.offset.left &&
+            this.y + this.height - this.offset.bottom > movableObject.y + movableObject.offset.top &&
+            this.x + this.offset.left < movableObject.x + movableObject.width - movableObject.offset.right &&
+            this.y + this.offset.top < movableObject.y + movableObject.height - movableObject.offset.bottom;
     }
 
     hit() {
-        this.energy -= 4;
+        this.characterLifePoints-= 4;
         if (this.energy < 0) {
             this.energy = 0;
         } else {
@@ -45,6 +51,7 @@ class MovableObject extends DrawableObject {
     }   
 
     isDead() {
+        if (this instanceof Character) return this.characterLifePoints == 0;
         return this.energy == 0;
     }
 
