@@ -8,27 +8,37 @@ class MovableObject extends DrawableObject {
     lastHit = 0;
     groundY;
     isDeadAnimationPlayed = false;
+    isInvulnerable = false;
+    gravityLoop;
 
     applyGravity(){
-        setInterval( () => {
-            if(this.isAboveGround() || this.speedY > 0){
+        if (this.gravityLoop) clearInterval(this.gravityLoop);
+
+        this.gravityLoop = setInterval(() => {
+            if (this instanceof Character ) {
+                this.applyGroundGravity();
+            } 
+        }, 1000 / 35);
+    }
+
+    applyGroundGravity() {
+        if (this.y < this.groundY || this.speedY > 0) {
             this.y -= this.speedY;
             this.speedY -= this.acceleration;
-            }
-
-        }, 1000 / 25);
+        } else {
+            this.y = this.groundY;
+            this.speedY = 0;
+        }
     }
 
     isAboveGround(){
-        if (this instanceof ThrowableObject) { // Throwable Object should always fall
-            return true;
-        } else {
-            return this.y < 155;
-        }
+        return this.y < this.groundY;
+        
         
     }
 
     isColliding(movableObject) {
+        if (!movableObject || !movableObject.offset) return false;
         return this.x + this.width - this.offset.right > movableObject.x + movableObject.offset.left &&
             this.y + this.height - this.offset.bottom > movableObject.y + movableObject.offset.top &&
             this.x + this.offset.left < movableObject.x + movableObject.width - movableObject.offset.right &&
@@ -36,12 +46,46 @@ class MovableObject extends DrawableObject {
     }
 
     hit() {
-        this.characterLifePoints-= 4;
-        if (this.energy < 0) {
-            this.energy = 0;
-        } else {
-            this.lastHit = new Date().getTime();
+        if (this.isInvulnerable) return;
+        console.log("Character wurde getroffen!");
+        if (this instanceof Character) {
+            this.reduceCharacterLifePoints()
+        } else if (this instanceof Endboss){
+            this.reduceEndbossLifePoints()
         }
+         this.lastHit = new Date().getTime();
+
+    this.isInvulnerable = true;
+    setTimeout(() => {
+        this.isInvulnerable = false;
+    }, 300); // 0,3 Sekunde Schutzzeit
+
+
+    }
+
+    reduceCharacterLifePoints(){
+        this.characterLifePoints -= 4;
+        if (this.characterLifePoints < 0) {
+            this.characterLifePoints = 0;
+        } 
+    }
+
+    reduceEndbossLifePoints(){
+        this.endbossLifePoints -= 20;
+        if (this.endbossLifePoints < 0) {
+            this.endbossLifePoints = 0;
+        } 
+    }
+
+    takeJumpDamage(){
+        if (this.isInvulnerable) {
+            return;            
+        }
+        this.endbossLifePoints -= 15;
+        if (this.endbossLifePoints < 0) {
+            this.endbossLifePoints = 0;
+        } 
+        this.lastHit = new Date().getTime();
     }
 
     isHurt() {
@@ -51,7 +95,9 @@ class MovableObject extends DrawableObject {
     }   
 
     isDead() {
+        if (this.isInvulnerable) return false;
         if (this instanceof Character) return this.characterLifePoints == 0;
+        if (this instanceof Endboss) return this.endbossLifePoints == 0;
         return this.energy == 0;
     }
 
@@ -75,6 +121,29 @@ class MovableObject extends DrawableObject {
         this.speedY = 30;
     }
 
+    bounce(enemy) {
+        this.isInvulnerable = true; 
+        this.speedY = 17; 
+
+        this.y = enemy.y - this.height + enemy.offset.top;
+
+        setTimeout(() => {
+            this.isInvulnerable = false;
+        }, 200);
+    }
+
+    startAllLoops() {
+        if (!this.gravityLoop) {
+            this.applyGravity(); 
+        }
+    }
+
+    stopAllLoops() {
+        if (this.gravityLoop) {
+            clearInterval(this.gravityLoop);
+            this.gravityLoop = null;
+        }
+    }
 
 
 }

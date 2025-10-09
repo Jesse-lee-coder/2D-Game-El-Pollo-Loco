@@ -3,13 +3,21 @@ class Character extends MovableObject{
     height = 280;
     y = 155; 
     characterLifePoints = 100;
+    groundY = 155;
     speed = 10;
     lastInputTime = Date.now();
     idleTimeout = 6000;
-    isRightMovementAllowed = true;
-    isLeftMovementAllowed = true;
+    isAbleToMoveRight = true;
+    isAbleToMoveLeft = true;
     characterMovementLoop;
     characterAnimationLoop;
+    characterIdleAnimationLoop;
+    collectBottles = [];
+    collectCoins = [];
+    bottles = [];
+    lastThrow = 0;
+    throwWaitTime = 500;
+    world;
 
     offset = {
         top: 120,
@@ -84,7 +92,7 @@ class Character extends MovableObject{
     ];
 
 
-    world;
+    
     // walking_sound = new Audio('Audiofile')
 
     constructor() {
@@ -104,8 +112,13 @@ class Character extends MovableObject{
 
         this.startMovementLoop();
         this.startAnimationLoop();
+        this.startIdleAnimationLoop();
 
     }
+
+    /*setCharacterToGroundLevel() {
+        return 155;
+    }*/
 
     startMovementLoop() {
         this.characterMovementLoop = setInterval(() => {
@@ -122,7 +135,7 @@ class Character extends MovableObject{
     }
 
     executeRightMovement() {
-        if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x && this.isRightMovementAllowed) {
+        if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x && this.isAbleToMoveRight) {
             this.moveRight();
             // sound hinzufügen this.sounds()
             this.otherDirection = false;
@@ -130,7 +143,7 @@ class Character extends MovableObject{
     }
 
     executeLeftMovement() {
-        if (this.world.keyboard.LEFT && this.x > 0 && this.isLeftMovementAllowed) {
+        if (this.world.keyboard.LEFT && this.x > 0 && this.isAbleToMoveLeft) {
             this.moveLeft();
             // sound hinzufügen this.sounds()
             this.otherDirection = true;
@@ -143,6 +156,15 @@ class Character extends MovableObject{
         }
     }
 
+    executeBottleThrow(currentTime) {
+        let bottleX = this.x + (this.otherDirection ? -5 : 80);
+        this.collectBottles.splice(0, 1);
+        let bottle = new ThrowableObject(bottleX, this.y + 130, this.otherDirection);
+        this.bottles.push(bottle);
+        this.lastThrow = currentTime;
+        this.lastInputTime = Date.now();
+    }
+
     updateLastInputTime() {
         if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT || this.world.keyboard.SPACE || this.world.keyboard.D) {
             this.lastInputTime = Date.now();
@@ -151,23 +173,21 @@ class Character extends MovableObject{
 
     startAnimationLoop() {
         this.characterAnimationLoop = setInterval(() => {
-            if (this.isDead()) {
-                this.playDeathAnimation();
-                return;
-            } 
-            else if (this.isHurt()) {
-                this.playAnimation(this.IMAGES_HURT);
-            } 
-            else if (this.isAboveGround()) {
-                this.playAnimation(this.IMAGES_JUMPING);
-            } 
-            else if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
-                this.playAnimation(this.IMAGES_WALKING);
-            } 
-            else {
+            if (handleCharacterDeath(this)) return;
+            if (handleCharacterHurt(this)) return;
+            if (updateJumpAnimation(this)) return;
+            updateWalkAnimation(this);
+            processBottleThrow(this);
+        }, 50);
+    }
+
+    startIdleAnimationLoop() {
+        this.characterIdleAnimationLoop = setInterval(() => {
+            const isCharacterMoving = this.world.keyboard.RIGHT || this.world.keyboard.LEFT || this.world.keyboard.SPACE || this.world.keyboard.D;
+            if (!this.isDead() && !this.isHurt() && !this.isAboveGround() && !isCharacterMoving) {
                 this.playIdleAnimations();
             }
-        }, 120);
+        }, 200);
     }
 
     playIdleAnimations(){
@@ -178,7 +198,7 @@ class Character extends MovableObject{
         }
     }
 
-    playDeathAnimation() {
+    /*playDeathAnimation() {
         let i = this.currentImage;
         if (i < this.IMAGES_DEAD.length) {
             let path = this.IMAGES_DEAD[i];
@@ -189,13 +209,20 @@ class Character extends MovableObject{
             this.img = this.imageCache[this.IMAGES_DEAD[0]];
             this.stopAllLoops();
         }
-    }
+    }*/
 
 
 
     hasBeenIdle() {
         let timePassed = Date.now() - this.lastInputTime;
         return timePassed > this.idleTimeout;
+    }
+
+    startAllLoops() {
+        if (!this.isDead()) {
+            super.startAllLoops();
+            this.animate();
+        }
     }
 
     stopAllLoops() {
@@ -212,21 +239,17 @@ class Character extends MovableObject{
         if (this.characterAnimationLoop) {
             clearInterval(this.characterAnimationLoop);
             this.characterAnimationLoop = null;
+        }        
+        if (this.characterIdleAnimationLoop) {
+            clearInterval(this.characterIdleAnimationLoop);
+            this.characterIdleAnimationLoop = null;
         }
 
     }
 
-    jump(){
-        this.speedY = 30;
+    draw(ctx) {
+        super.draw(ctx);
     }
 
-    hit() {
-    this.characterLifePoints -= 4;
-    if (this.characterLifePoints < 0) {
-        this.characterLifePoints = 0;
-    } else {
-        this.lastHit = new Date().getTime();
-    }
-}
 
 }
