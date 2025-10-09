@@ -21,15 +21,15 @@ class Cloud extends MovableObject {
         }
     }
 
+    startAllLoops() {
+        this.animateClouds();
+    }
+
     stopAllLoops() {
         if (this.animateCloudsLoops) {
             clearInterval(this.animateCloudsLoops);
             this.animateCloudsLoops = null;
         }
-    }
-
-    startAllLoops() {
-        this.animateClouds();
     }
 
 }

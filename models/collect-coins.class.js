@@ -10,6 +10,13 @@ class CollectCoins extends MovableObject {
     coinsAnimationLoop;
     coinsFloatingLoop;
 
+    offset = {
+        top: 47,
+        left: 47,
+        right: 48,
+        bottom: 47
+    };
+
 
     IMAGES_COINS = [
         'img/img/8_coin/coin_1.png',
@@ -50,6 +57,9 @@ class CollectCoins extends MovableObject {
         }, 1000 / 60);        
     }
 
+    startAllLoops() {
+        this.animateFloatingEffect();
+    }
 
     stopAllLoops() {
         if (this.coinsAnimationLoop) {
@@ -62,7 +72,5 @@ class CollectCoins extends MovableObject {
         }
     }
 
-    startAllLoops() {
-        this.animateFloatingEffect();
-    }
+
 }
