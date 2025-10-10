@@ -29,7 +29,7 @@ function checkCharacterEnemyCollision(enemy) {
 }
 
 function resolveJumpAttack(enemy) {
-    if (enemy instanceof Chicken) {
+    if (enemy instanceof Chicken || enemy instanceof SmallChicken) {
         defeatChickenByJump(enemy);
     }
     else if (enemy instanceof Endboss) {
@@ -60,7 +60,7 @@ function checkBottleEnemyCollisions(bottle) {
 }
 
 function resolveBottleHitEnemy(enemy, enemyIndex) {
-    if (enemy instanceof Chicken) {
+    if (enemy instanceof Chicken || enemy instanceof SmallChicken) {
         defeatChickenByBottle(enemy, enemyIndex);
     }
     else if (enemy instanceof Endboss) {

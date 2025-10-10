@@ -15,7 +15,7 @@ class MovableObject extends DrawableObject {
         if (this.gravityLoop) clearInterval(this.gravityLoop);
 
         this.gravityLoop = setInterval(() => {
-            if (this instanceof Character ) {
+            if (this.groundY !== undefined) {
                 this.applyGroundGravity();
             } 
         }, 1000 / 35);
@@ -119,6 +119,10 @@ class MovableObject extends DrawableObject {
 
     jump() {
         this.speedY = 30;
+    }
+
+    smallChickenJump() {
+        this.speedY = 24;
     }
 
     bounce(enemy) {
