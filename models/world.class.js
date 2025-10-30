@@ -1,8 +1,9 @@
 class World {
-    level = level1;
+
     character = new Character();
     endboss;
     movableObject = new MovableObject();
+    level = level1;
     canvas;
     ctx;
     keyboard;
@@ -12,20 +13,18 @@ class World {
     statusBarBottles = new StatusBar('bottle');
     statusBarEndboss = new StatusBar('endboss');
     displayEndbossStatusBar = false;
-    //throwableObjects = [];
     bottleHitObject = false;
     totalAmountOfCoins;
     totalAmountOfBottles;
     gameLoop;
 
-
     constructor(canvas, keyboard) {
         this.ctx = canvas.getContext('2d');
         this.canvas = canvas;
         this.keyboard = keyboard;
+        playGameMusic();
         this.draw();
         this.setWorld();
-        //this.run();
         this.startGameLoop();
         this.totalAmountOfBottles = this.level.bottles.length;
         this.totalAmountOfCoins = this.level.coins.length;
@@ -35,8 +34,8 @@ class World {
         this.character.world = this;
         this.endboss = this.level.enemies.find(enemy => enemy instanceof Endboss);
         this.level.enemies.forEach(enemy => {
-      enemy.world = this;
-      if (enemy instanceof Chicken || enemy instanceof Endboss) {
+        enemy.world = this;
+        if (enemy instanceof Chicken || enemy instanceof SmallChicken || enemy instanceof Endboss) {
         enemy.character = this.character;
       }
     });
@@ -45,8 +44,8 @@ class World {
     startGameLoop() {
         this.gameLoop = setInterval(() => {
             checkCollisions();
-            this.handleItemCollection(this.level.bottles, this.character.collectBottles, 700);
-            this.handleItemCollection(this.level.coins, this.character.collectCoins, 500);
+            this.handleItemCollection(this.level.bottles, this.character.collectBottles, PATH_COLLECT_BOTTLE, collect_bottle_volume, 700);
+            this.handleItemCollection(this.level.coins, this.character.collectCoins, PATH_COLLECT_COIN, collect_coin_volume, 500);
             this.updateStatusBars();
         }, 20);
     }
@@ -79,27 +78,16 @@ class World {
 
     }
 
-    handleItemCollection(worldItems, collectedItems) {
+    handleItemCollection(worldItems, collectedItems, audioPath, volume, durationMs) {
     
         worldItems.forEach((item, index) => {
             if (this.character.isColliding(item)) {
-        
             collectedItems.push(item);
-
             worldItems.splice(index, 1);
+            playPickupSound(audioPath, volume, durationMs);
             }
-  });
-
+        });
     }
-
-/*
-    run() {
-        setInterval(() => {
-
-            this.checkCollisions();
-            this.checkThrowObjects();
-        }, 200);
-    }*/
 
     removeEnemyAfterTime(removeEnemy, timeMs, indexToRemove = -1) {
         setTimeout(() => {
@@ -114,25 +102,6 @@ class World {
     removeBottle(bottleIndex) {
     this.character.bottles.splice(bottleIndex, 1);
   }
-
-  /*
-    checkThrowObjects() {
-        if (this.keyboard.D) {
-            let bottle = new ThrowableObject(this.character.x + 100, this.character.y + 100)
-            this.throwableObjects.push(bottle);
-            
-        }
-    }
-
-    checkCollisions() {
-        this.level.enemies.forEach((enemy) => {
-        if (this.character.isColliding(enemy)) {
-            this.character.hit();
-            this.statusBarHealth.setPercentage(this.character.characterLifePoints);
-        }    
-    });
-}*/
-
 
     draw() {
         this.drawBackgroundLayer();
@@ -166,14 +135,11 @@ class World {
         this.addObjectsToMap(this.level.coins);
         this.addToMap(this.character);
         this.addObjectsToMap(this.level.enemies);
-        //this.addObjectsToMap(this.throwableObjects);
         this.addObjectsToMap(this.level.bottles);
         this.addObjectsToMap(this.character.bottles);
         this.ctx.translate(-this.camera_x, 0);
     }
    
-
-
     addObjectsToMap(objects){
         objects.forEach( o => {
             this.addToMap(o);
@@ -186,8 +152,6 @@ class World {
         };
 
         mo.draw(this.ctx);
-        //mo.drawFrame(this.ctx);
-
         if(mo.otherDirection) {
             this.flipImageBack(mo);
         };
@@ -204,5 +168,4 @@ class World {
         mo.x = mo.x * -1;
         this.ctx.restore();
     }
-// Param Kommentare hinzufügen
 }

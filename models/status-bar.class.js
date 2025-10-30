@@ -1,11 +1,11 @@
 class StatusBar extends DrawableObject {
+
     x = 10;
     y = 0;
     width = 200;
     height = 60;
     statusbarType;
     percentage = 100;
-
 
     STATUSBAR_HEALTH = [
         'img/img/7_statusbars/1_statusbar/2_statusbar_health/green/0.png',
@@ -43,7 +43,6 @@ class StatusBar extends DrawableObject {
         'img/img/7_statusbars/2_statusbar_endboss/green/green80.png',
         'img/img/7_statusbars/2_statusbar_endboss/green/green100.png',
     ]
-
 
     constructor(statusbarType) {
         super();
@@ -110,5 +109,4 @@ class StatusBar extends DrawableObject {
             return 0;
         } 
     }
-
 }

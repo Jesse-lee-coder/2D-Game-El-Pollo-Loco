@@ -1,10 +1,10 @@
 class Character extends MovableObject{
 
     height = 280;
-    y = 155; 
-    characterLifePoints = 100;
+    width = 150;
     groundY = 155;
     speed = 10;
+    characterLifePoints = 100;
     lastInputTime = Date.now();
     idleTimeout = 6000;
     isAbleToMoveRight = true;
@@ -91,10 +91,6 @@ class Character extends MovableObject{
 
     ];
 
-
-    
-    // walking_sound = new Audio('Audiofile')
-
     constructor() {
         super().loadImage('img/img/2_character_pepe/1_idle/idle/I-1.png');
         this.loadImages(this.IMAGES_IDLE);
@@ -116,10 +112,6 @@ class Character extends MovableObject{
 
     }
 
-    /*setCharacterToGroundLevel() {
-        return 155;
-    }*/
-
     startMovementLoop() {
         this.characterMovementLoop = setInterval(() => {
             this.updateLastInputTime();
@@ -137,7 +129,7 @@ class Character extends MovableObject{
     executeRightMovement() {
         if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x && this.isAbleToMoveRight) {
             this.moveRight();
-            // sound hinzufügen this.sounds()
+            this.handleWalkingSound();
             this.otherDirection = false;
         }
     }
@@ -145,16 +137,28 @@ class Character extends MovableObject{
     executeLeftMovement() {
         if (this.world.keyboard.LEFT && this.x > 0 && this.isAbleToMoveLeft) {
             this.moveLeft();
-            // sound hinzufügen this.sounds()
+            this.handleWalkingSound();
             this.otherDirection = true;
         }
     }
 
     executeJump() {
         if (this.world.keyboard.SPACE && !this.isAboveGround()) {
+            if (!isGameFinish) {
+                character_jump.play();
+            }
             this.jump();
         }
     }
+
+    handleWalkingSound() {
+        if (!this.isAboveGround() && !isGameFinish) {
+            character_walking.play();
+        } else {
+            character_walking.pause();
+            character_walking.currentTime = 0;
+        }
+    }   
 
     executeBottleThrow(currentTime) {
         let bottleX = this.x + (this.otherDirection ? -5 : 80);
@@ -193,42 +197,29 @@ class Character extends MovableObject{
     playIdleAnimations(){
         if(this.hasBeenIdle()){
             this.playAnimation(this.IMAGES_LONG_IDLE);
+             if (!isGameFinish) {
+                character_snoring.play();
+                character_snoring.volume = character_snoring_volume;
+                game_music.volume = game_music_volume_low;
+            }
         } else {
             this.playAnimation(this.IMAGES_IDLE);
+            character_snoring.pause();
+            character_snoring.currentTime = 0;
+            game_music.volume = game_music_volume_high;
         }
     }
-
-    /*playDeathAnimation() {
-        let i = this.currentImage;
-        if (i < this.IMAGES_DEAD.length) {
-            let path = this.IMAGES_DEAD[i];
-            this.img = this.imageCache[path];
-            this.currentImage++;
-        } else {
-            // nach der Animation → beim ersten Bild stehen bleiben
-            this.img = this.imageCache[this.IMAGES_DEAD[0]];
-            this.stopAllLoops();
-        }
-    }*/
-
-
 
     hasBeenIdle() {
         let timePassed = Date.now() - this.lastInputTime;
         return timePassed > this.idleTimeout;
     }
 
-    startAllLoops() {
-        if (!this.isDead()) {
-            super.startAllLoops();
-            this.animate();
-        }
-    }
-
-    stopAllLoops() {
-        super.stopAllLoops();
-        this.clearCharacterLoops();
-
+    resetAudio() {
+        character_walking.pause();
+        character_walking.currentTime = 0;
+        character_snoring.pause();
+        character_snoring.currentTime = 0;
     }
 
     clearCharacterLoops() {
@@ -247,9 +238,20 @@ class Character extends MovableObject{
 
     }
 
+    stopAllLoops() {
+        super.stopAllLoops();
+        this.clearCharacterLoops();
+        this.resetAudio();
+    }
+
+    startAllLoops() {
+        if (!this.isDead()) {
+            super.startAllLoops();
+            this.animate();
+        }
+    }
+
     draw(ctx) {
         super.draw(ctx);
     }
-
-
 }

@@ -1,4 +1,5 @@
 class SmallChicken extends MovableObject {
+
     groundY = 375;
     speed = 0.85;
     height = 50;
@@ -71,13 +72,6 @@ class SmallChicken extends MovableObject {
         }, 150);
     }
 
-    startAllLoops() {
-        if (!this.isDead()) {
-            super.startAllLoops(); 
-            this.animate(); 
-        }
-    }
-
     stopAllLoops() {
         super.stopAllLoops(); 
         if (this.smallChickenAnimationLoop) {
@@ -90,5 +84,10 @@ class SmallChicken extends MovableObject {
         }
     }
 
-
+    startAllLoops() {
+        if (!this.isDead()) {
+            super.startAllLoops(); 
+            this.animate(); 
+        }
+    }
 }

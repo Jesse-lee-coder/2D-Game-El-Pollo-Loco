@@ -1,0 +1,239 @@
+.game-body {
+  min-height: 100dvh;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.canvas {
+  width: 720px;
+  height: 480px;
+}
+
+.game-screen {
+  z-index: 2;
+  background-color: orange;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 720px;
+  height: 480px;
+  overflow: hidden;
+  border-radius: 16px;
+  border-radius: 16px;
+  box-shadow: 4px 0 4px rgba(0, 0, 0, 0.5), -4px 0 4px rgba(0, 0, 0, 0.5), 0 4px 4px rgba(0, 0, 0, 0.5), 0 -4px 4px rgba(0, 0, 0, 0.5);
+}
+
+.play-nav {
+  position: absolute;
+  top: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+}
+
+.side-mobile-controls {
+  position: absolute;
+  left: 3px;
+  top: 40%;
+}
+
+.mobile-nav {
+  position: absolute;
+  bottom: 3px;
+  width: 90%;
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-left-controls {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  margin-left: 25px;
+}
+
+.mobile-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 45px;
+}
+
+.mobile-btn-box {
+  display: grid;
+  place-items: center;
+  padding: 0px 11px 0px 11px;
+  border-radius: 25%;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.pause-control-box {
+  padding: 0px 11px 0px 11px;
+  margin-left: 6px;
+  border-radius: 20%;
+  background-color: rgba(88, 88, 88, 0.2);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.fullscreen-btn {
+  padding: 10px;
+}
+
+.sound-box,
+.quit-game-box,
+.fullscreen-box,
+.game-pause-box,
+.pause-control-box {
+  display: grid;
+  place-items: center;
+  width: clamp(20px, 0.8612px + 5.9809vw, 45px);
+  aspect-ratio: 1 / 1;
+}
+
+.mobile-btn-box img {
+  width: 55px;
+  aspect-ratio: 1 / 1;
+}
+
+.images-play-nav {
+  width: 115%;
+}
+
+.overlay-game-over,
+.overlay-winning {
+  z-index: 3;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(42, 43, 43, 0.99);
+}
+
+.spinner {
+  width: 220px;
+  animation: spinnerAnimation 4s infinite linear;
+}
+
+@keyframes spinnerAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.overlay-game-over {
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-game-over,
+.overlay-winning {
+  align-items: center;
+  justify-content: center;
+  background-color: orange;
+}
+
+.overlay-winning {
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-over-box,
+.winning-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-over-background {
+  width: var(--image-size-loose);
+  animation: looseBgAnimation 1.5s ease-in-out;
+}
+
+.wining-background {
+  width: var(--image-size-win);
+  animation: winBgAnimation 1.5s ease-in-out;
+}
+
+.game-over-nav,
+.winning-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding-bottom: 35px;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  animation: opacity 2.5s ease-in-out forwards;
+  opacity: 0;
+  padding-top: 20px;
+}
+
+@keyframes looseBgAnimation {
+  0% {
+    width: 0px;
+    transform: rotate(360deg);
+  }
+
+  100% {
+    width: var(--image-size-loose);
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes winBgAnimation {
+  0% {
+    width: 0px;
+    transform: rotate(360deg);
+  }
+
+  100% {
+    width: var(--image-size-win);
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes opacity {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@media screen and (min-width: 321px) and (max-width: 740px) and (orientation: landscape) {
+  .mobile-btn-box img {
+    width: 41px;
+  }
+
+  .wining-background {
+    width: 200px;
+    animation: winBgAnimation 1.5s ease-in-out;
+  }
+  @keyframes winBgAnimation {
+    0% {
+      width: 0px;
+      transform: rotate(360deg);
+    }
+
+    100% {
+      width: 200px;
+      transform: rotate(0deg);
+    }
+  }
+}

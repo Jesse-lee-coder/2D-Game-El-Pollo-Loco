@@ -1,8 +1,9 @@
 class CollectCoins extends MovableObject {
+
+    height = 130;
+    width = 130; 
     x = 300;
     y = 250;
-    height = 130;
-    width = 130;
     initialY;
     animationDirection = 1;
     animationSpeedY = 0.8;
@@ -16,7 +17,6 @@ class CollectCoins extends MovableObject {
         right: 48,
         bottom: 47
     };
-
 
     IMAGES_COINS = [
         'img/img/8_coin/coin_1.png',
@@ -57,10 +57,6 @@ class CollectCoins extends MovableObject {
         }, 1000 / 60);        
     }
 
-    startAllLoops() {
-        this.animateFloatingEffect();
-    }
-
     stopAllLoops() {
         if (this.coinsAnimationLoop) {
             clearInterval(this.coinsAnimationLoop);
@@ -72,5 +68,7 @@ class CollectCoins extends MovableObject {
         }
     }
 
-
+    startAllLoops() {
+        this.animateFloatingEffect();
+    }
 }

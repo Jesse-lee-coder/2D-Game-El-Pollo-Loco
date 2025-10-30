@@ -1,18 +1,18 @@
 class ThrowableObject extends MovableObject {
 
+    world;
+    groundY = 351;
+    isSplashing = false;
+    movementLoop;
+    rotationAnimationLoop;
+    splashAnimationLoop;
+
     offset = {
         top: 8,
         left: 15,
         right: 15,
         bottom: 8
     };
-
-    groundY = 351;
-    isSplashing = false;
-    world;
-    movementLoop;
-    rotationAnimationLoop;
-    splashAnimationLoop;
 
     IMAGES_BOTTLE_ROTATION = [
         'img/img/6_salsa_bottle/bottle_rotation/1_bottle_rotation.png',
@@ -45,7 +45,6 @@ class ThrowableObject extends MovableObject {
         this.splashHeight = 80;
         this.throw();
     }
-
 
     throw() {
 
@@ -95,7 +94,6 @@ class ThrowableObject extends MovableObject {
         this.stopMovementAndRotationLoops();
         this.startSplashAnimationsLoop();
     }
-
 
     startSplashAnimationsLoop() {
         if (!this.splashAnimationLoop) {
@@ -163,5 +161,4 @@ class ThrowableObject extends MovableObject {
             this.rotationAnimationLoop = null;
         }
     }
-
 }

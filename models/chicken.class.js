@@ -1,8 +1,9 @@
 class Chicken extends MovableObject {
+
     character;
-    y = 365;
     height = 60;
     width = 80;
+    y = 365;
     chickenLifePoints = 10;
     chickenAnimationLoop;
     chickenMovementLoop;
@@ -13,7 +14,6 @@ class Chicken extends MovableObject {
         right: 0,
         bottom: 0
     };
-
 
     IMAGES_WALKING = [
         'img/img/3_enemies_chicken/chicken_normal/1_walk/1_w.png',
@@ -82,12 +82,6 @@ class Chicken extends MovableObject {
         }
     }
 
-    startAllLoops() {
-        if (!this.isDead()) {
-            this.animate();
-        }
-    }
-
     stopAllLoops() {
         super.stopAllLoops();
 
@@ -101,10 +95,9 @@ class Chicken extends MovableObject {
         }
     }
 
-
-
-
-
+    startAllLoops() {
+        if (!this.isDead()) {
+            this.animate();
+        }
+    }
 }
-
-

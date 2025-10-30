@@ -11,6 +11,13 @@ class MovableObject extends DrawableObject {
     isInvulnerable = false;
     gravityLoop;
 
+    offset = {
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0
+    };
+
     applyGravity(){
         if (this.gravityLoop) clearInterval(this.gravityLoop);
 
@@ -34,7 +41,6 @@ class MovableObject extends DrawableObject {
     isAboveGround(){
         return this.y < this.groundY;
         
-        
     }
 
     isColliding(movableObject) {
@@ -54,13 +60,6 @@ class MovableObject extends DrawableObject {
             this.reduceEndbossLifePoints()
         }
          this.lastHit = new Date().getTime();
-
-    this.isInvulnerable = true;
-    setTimeout(() => {
-        this.isInvulnerable = false;
-    }, 300); // 0,3 Sekunde Schutzzeit
-
-
     }
 
     reduceCharacterLifePoints(){
@@ -89,8 +88,8 @@ class MovableObject extends DrawableObject {
     }
 
     isHurt() {
-        let timepassed = new Date().getTime() - this.lastHit; // Difference in ms
-        timepassed = timepassed / 1000; // Difference in seconds
+        let timepassed = new Date().getTime() - this.lastHit; 
+        timepassed = timepassed / 1000; 
         return timepassed < 1;
     }   
 
@@ -100,7 +99,6 @@ class MovableObject extends DrawableObject {
         if (this instanceof Endboss) return this.endbossLifePoints == 0;
         return this.energy == 0;
     }
-
 
     playAnimation(images){
         let i = this.currentImage % images.length;
@@ -136,12 +134,6 @@ class MovableObject extends DrawableObject {
         }, 200);
     }
 
-    startAllLoops() {
-        if (!this.gravityLoop) {
-            this.applyGravity(); 
-        }
-    }
-
     stopAllLoops() {
         if (this.gravityLoop) {
             clearInterval(this.gravityLoop);
@@ -149,5 +141,9 @@ class MovableObject extends DrawableObject {
         }
     }
 
-
+    startAllLoops() {
+        if (!this.gravityLoop) {
+            this.applyGravity(); 
+        }
+    }
 }

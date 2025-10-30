@@ -5,26 +5,23 @@ function startAllLoops() {
     activateCollectionProcesses(world.character.bottles);
     activateCollectionProcesses(world.level.coins);
     activateCollectionProcesses(world.level.clouds);
+    playMusicTracks();
 }
 
 function stopAllLoops() {
-    stopWorldMainInterval();
+    stopMainWorldLoop();
     stopCharacterLoops();
     pauseCollectionProcesses(world.level.enemies);
     pauseCollectionProcesses(world.character.bottles);
     pauseCollectionProcesses(world.level.coins);
     pauseCollectionProcesses(world.level.clouds);
+    pauseSpecificAudio();
+    pauseAllAudio();
 }
 
 function startCharacterLoops() {
     if (world.character && typeof world.character.startAllLoops === 'function') {
         world.character.startAllLoops();
-    }
-}
-
-function stopCharacterLoops() {
-    if (world.character && typeof world.character.stopAllLoops === 'function') {
-        world.character.stopAllLoops();
     }
 }
 
@@ -49,13 +46,19 @@ function pauseCollectionProcesses(objectsArray) {
     }
 }
 
-function startWorldLoop() {
-    world.startGameLoop();
-}
-
-function stopWorldLoop() {
+function stopMainWorldLoop() {
     if (world.gameLoop) {
         clearInterval(this.gameLoop);
         world.gameLoop = null;
     }
+}
+
+function stopCharacterLoops() {
+    if (world.character && typeof world.character.stopAllLoops === 'function') {
+        world.character.stopAllLoops();
+    }
+}
+
+function startMainWorldLoop() {
+    world.startGameLoop();
 }

@@ -1,0 +1,141 @@
+.menu-body {
+  min-height: 100dvh;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-container {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background-color: orange;
+  border-right: 7px solid transparent;
+  box-sizing: border-box;
+}
+
+.menu-nav {
+  padding-top: 16px;
+  padding-bottom: 6px;
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+
+.menu-main {
+  text-align: center;
+}
+
+.content-mobile {
+  display: none;
+  text-align: center;
+  flex-direction: column;
+}
+
+.controls-box {
+  margin-block: 16px;
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap-reverse;
+  align-content: flex-start;
+}
+
+.game-instructions {
+  margin: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.controls-box p {
+  white-space: nowrap;
+}
+
+.game-instructions p,
+.controls-box {
+  font-size: var(--font-size-18-24);
+}
+
+.controls-box img {
+  width: 55px;
+  aspect-ratio: 1 / 1;
+}
+
+.control-left,
+.control-right,
+.control-jump,
+.control-throw,
+.control-left-mobile,
+.control-right-mobile,
+.control-jump-mobile,
+.control-throw-mobile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-inline: 6px;
+  gap: 10px;
+}
+
+.control-jump img {
+  width: 115px;
+  aspect-ratio: 2 / 1;
+}
+
+@media screen and (min-width: 321px) and (max-width: 844px) and (orientation: portrait) {
+  .content-desktop {
+    display: none;
+  }
+
+  .content-mobile {
+    display: flex;
+  }
+}
+
+@media screen and (min-width: 321px) and (max-width: 844px) and (orientation: landscape) {
+  .content-desktop {
+    display: none;
+  }
+
+  .content-mobile {
+    display: flex;
+  }
+}
+
+.menu-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.menu-main h2:last-of-type,
+.menu-main .game-instructions {
+  order: -1;
+}
+
+.menu-main .content-desktop,
+.menu-main .content-mobile {
+  order: 1;
+}
+
+.menu-container {
+  max-height: 100dvh;
+  overflow-y: auto; 
+  scrollbar-gutter: stable;
+}
+
+@media screen and (max-width: 844px) {
+  .menu-main {
+    gap: 32px;
+    padding-bottom: 20px;
+  }
+}

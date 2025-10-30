@@ -1,5 +1,7 @@
-const level1 = new Level(
+let level1;
 
+    function setupLevel(){
+        level1 = new Level ( 
     [
         new Chicken(),
         new Chicken(),
@@ -44,7 +46,12 @@ const level1 = new Level(
         new BackgroundObject('img/img/5_background/layers/air.png', 2160),
         new BackgroundObject('img/img/5_background/layers/3_third_layer/2.png', 2160),
         new BackgroundObject('img/img/5_background/layers/2_second_layer/2.png', 2160),
-        new BackgroundObject('img/img/5_background/layers/1_first_layer/2.png', 2160)
+        new BackgroundObject('img/img/5_background/layers/1_first_layer/2.png', 2160),
+
+        new BackgroundObject('img/img/5_background/layers/air.png', 2880),
+        new BackgroundObject('img/img/5_background/layers/3_third_layer/1.png', 2880),
+        new BackgroundObject('img/img/5_background/layers/2_second_layer/1.png', 2880),
+        new BackgroundObject('img/img/5_background/layers/1_first_layer/1.png', 2880),
     ],
 
     [
@@ -63,12 +70,5 @@ const level1 = new Level(
         new CollectCoins(),
         new CollectCoins(),
     ],
-
-
-
-
-
-
-
-
-);
+    );
+};

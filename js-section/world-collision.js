@@ -40,6 +40,7 @@ function resolveJumpAttack(enemy) {
 function defeatChickenByJump(chicken) {
     chicken.energy = 0;
     chicken.isDeadAnimationPlayed = false;
+    playEnemyStompSound();
     world.character.bounce(chicken);
     world.removeEnemyAfterTime(chicken, 500);
 }
@@ -47,6 +48,7 @@ function defeatChickenByJump(chicken) {
 function damageEndbossByJump(endboss) {
     world.endboss.takeJumpDamage();
     endboss.isDeadAnimationPlayed = false;
+    playBouncingSound();
     world.character.bounce(endboss);
 }
 
@@ -77,6 +79,7 @@ function damageEndbossByBottle() {
 function defeatChickenByBottle(chicken, enemyIndex) {
     chicken.energy = 0;
     chicken.isDeadAnimationPlayed = false;
+    playChickenDeathSound();
     world.removeEnemyAfterTime(chicken, 500, enemyIndex);
     world.bottleHitObject = true;
 }

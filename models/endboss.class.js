@@ -4,6 +4,7 @@ class Endboss extends MovableObject {
     height = 400;
     width = 250;
     y = 55;
+    speed = 3.5;
     endbossLifePoints = 100;
     isEndbossActive = false;
     endbossAnimationLoop;
@@ -89,6 +90,7 @@ class Endboss extends MovableObject {
 
             if (this.isHurt()) {
                 this.playAnimation(this.IMAGES_HURT);
+                this.playEndbossHurtSound();
             } else if (this.hasDetectedCharacter) {
                 this.manageAttackOrWalkBehavior()
             } else {
@@ -105,13 +107,14 @@ class Endboss extends MovableObject {
         }, 1000 / 60);
     }
 
-
     handleEndbossActivation() {
         if (!this.isEndbossActive && this.world && this.world.character) {
             if (this.endbossLifePoints <= 75 || this.world.character.x > 2200) {
                 this.world.displayEndbossStatusBar = true;
                 this.hasDetectedCharacter = true;
                 this.isEndbossActive = true;
+                this.startEndbossMusic();
+                this.playEndbossAlertSound();
             }
         }
     }
@@ -131,8 +134,16 @@ class Endboss extends MovableObject {
     manageAttackOrWalkBehavior() {
         if (this.character && Math.abs(this.character.x - this.x) < 200) {
             this.playAnimation(this.IMAGES_ATTACK);
+            if (!this.attackSoundActive) {
+                this.playEndbossAttackSound()
+            }
         } else {
             this.playAnimation(this.IMAGES_WALKING);
+            if (this.attackSoundActive) {
+                endboss_noise.pause();
+                endboss_noise.currentTime = 0;
+                this.attackSoundActive = false;
+            }
         }
     }
 
@@ -146,16 +157,64 @@ class Endboss extends MovableObject {
         }
     }
 
+    startEndbossMusic() {
+        if (!isMuted) {
+            game_music.pause();
+            game_music.currentTime = 0;
+            endboss_music.volume = endboss_noise_volume;
+            endboss_music.play();
+        }
+
+    }
+
+    playEndbossAlertSound() {
+        if (!isMuted) {
+            endboss_alert.currentTime = 0;
+            endboss_alert.play();
+            setTimeout(() => {
+                endboss_alert.pause();
+                endboss_alert.currentTime = 0;
+            }, 1200);
+        }
+
+    }
+
+    playEndbossHurtSound() {
+        if (!isMuted) {
+            let endboss_hit = new Audio(PATH_ENDBOSS_HURT);
+            endboss_hit.volume = enemy_stomp_volume;
+            endboss_hit.play();
+            setTimeout(() => {
+                endboss_hit.pause();
+                endboss_hit.currentTime = 0;
+            }, 1000);
+        }
+
+    }
+
+    playEndbossAttackSound () {
+        if (!isMuted) {
+            endboss_noise.currentTime = 0;
+            endboss_noise.play();
+            endboss_noise.volume = endboss_noise_volume;
+        }
+        this.attackSoundActive = true;
+
+    }
+
     onEndbossDeath() {
         this.stopAllLoops();
 
-    // Noch hinzufügen, was passieren soll.
-    }
-
-    startAllLoops() {
-        if (!this.isDead()) {
-            this.animate();
+        if (!isMuted) {
+            endboss_death.currentTime = 0;
+            endboss_death.play();
+            endboss_death.volume = endboss_death_volume;
         }
+
+        setTimeout(() => {
+            handleWinningScreen();
+        }, 2300);
+
     }
 
     stopAllLoops() {
@@ -169,6 +228,20 @@ class Endboss extends MovableObject {
         }
     }
 
+    resetAudio() {
+        endboss_death.pause();
+        endboss_death.currentTime = 0;
+        endboss_music.pause();
+        endboss_music.currentTime = 0;
+        endboss_noise.pause();
+        endboss_noise.currentTime = 0;
+        endboss_alert.pause();
+        endboss_alert.currentTime = 0;
+    }
 
-
+    startAllLoops() {
+        if (!this.isDead()) {
+            this.animate();
+        }
+    }
 }

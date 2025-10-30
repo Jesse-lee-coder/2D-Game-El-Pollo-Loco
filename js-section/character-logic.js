@@ -1,20 +1,29 @@
 function handleCharacterDeath(character) {
     if (character.isDead()) {
         character.playAnimation(character.IMAGES_DEAD);
+            if (!isGameFinish) {
+            character_death.volume = character_death_volume;
+            character_death.play();
+        }
         
         character.stopAllLoops();
+        setTimeout(() => {
+            handleLosingScreen();
+        }, 1600);
 
         return true;
     }
     return false;
 }
 
-
 function handleCharacterHurt(character) {
     if (character.isHurt()) {
         character.playAnimation(character.IMAGES_HURT);
+        if (!isGameFinish) {
+            character_hurt.play();
+        }
 
-        character.lastActivityTime = Date.now();
+        character.lastInputTime = Date.now();
         return true;
     }
     return false;
@@ -23,7 +32,7 @@ function handleCharacterHurt(character) {
 function updateJumpAnimation(character) {
     if (character.isAboveGround()) {
         character.playAnimation(character.IMAGES_JUMPING);
-        character.lastActivityTime = Date.now();
+        character.lastInputTime = Date.now();
         return true;
     }
     return false;
