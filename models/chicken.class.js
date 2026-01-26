@@ -1,103 +1,104 @@
+/**
+ * A normal chicken enemy.
+ * Moves left/right depending on the character position and plays walk/dead animations.
+ */
 class Chicken extends MovableObject {
+  /** @type {Character} */ character;
 
-    character;
-    height = 60;
-    width = 80;
-    y = 365;
-    chickenLifePoints = 10;
-    chickenAnimationLoop;
-    chickenMovementLoop;
+  /** @type {number} */ height = 60;
+  /** @type {number} */ width = 80;
+  /** @type {number} */ y = 365;
+  /** @type {number} */ chickenLifePoints = 10;
 
-    offset = {
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
-    };
+  /** @type {number|null} */ chickenAnimationLoop;
+  /** @type {number|null} */ chickenMovementLoop;
 
-    IMAGES_WALKING = [
-        'img/img/3_enemies_chicken/chicken_normal/1_walk/1_w.png',
-        'img/img/3_enemies_chicken/chicken_normal/1_walk/2_w.png',
-        'img/img/3_enemies_chicken/chicken_normal/1_walk/3_w.png'
-    ];
+  /** @type {{top:number,left:number,right:number,bottom:number}} */
+  offset = { top: 0, left: 0, right: 0, bottom: 0 };
 
-    IMAGE_DEAD = [
-        'img/img/3_enemies_chicken/chicken_normal/2_dead/dead.png'
-    ];
+  /** @type {string[]} */
+  IMAGES_WALKING = [
+    "img/img/3_enemies_chicken/chicken_normal/1_walk/1_w.png",
+    "img/img/3_enemies_chicken/chicken_normal/1_walk/2_w.png",
+    "img/img/3_enemies_chicken/chicken_normal/1_walk/3_w.png",
+  ];
 
-    constructor() {
-        super().loadImage('img/img/3_enemies_chicken/chicken_normal/1_walk/1_w.png');
-        this.loadImages(this.IMAGES_WALKING);
-        this.loadImages(this.IMAGE_DEAD);
-        this.speed = 0.5 + Math.random() * 1;
-        let randomX = 800 + Math.random() * 2000;
-        this.x = Math.round(randomX / 150) * 150;
-        this.animate();
-    }
+  /** @type {string[]} */
+  IMAGE_DEAD = ["img/img/3_enemies_chicken/chicken_normal/2_dead/dead.png"];
 
-    animate() {
-        if (this.chickenAnimationLoop) {
-            clearInterval(this.chickenAnimationLoop);
-        }
-        this.startChickenAnimationLoop();
-        if (this.chickenMovementLoop) {
-            clearInterval(this.chickenMovementLoop);
-        }
-        this.startChickenMovementLoop();
-    }
+  /**
+   * Creates a chicken with random speed and position, then starts its loops.
+   */
+  constructor() {
+    super().loadImage("img/img/3_enemies_chicken/chicken_normal/1_walk/1_w.png");
+    this.loadImages(this.IMAGES_WALKING);
+    this.loadImages(this.IMAGE_DEAD);
+    this.speed = 0.5 + Math.random() * 1;
+    const randomX = 800 + Math.random() * 2000;
+    this.x = Math.round(randomX / 150) * 150;
+    this.animate();
+  }
 
-    startChickenAnimationLoop() {
-        this.chickenAnimationLoop = setInterval(() => {
-            if (this.isDead()) {
-                if (!this.isDeadAnimationPlayed) {
-                    this.playAnimation(this.IMAGE_DEAD);
-                    this.isDeadAnimationPlayed = true;
-                }
-            } else {
-                this.playAnimation(this.IMAGES_WALKING);
-            }
-        }, 150);
-    }
+  /**
+   * Starts the animation and movement loops (clears old ones first).
+   */
+  animate() {
+    if (this.chickenAnimationLoop) clearInterval(this.chickenAnimationLoop);
+    if (this.chickenMovementLoop) clearInterval(this.chickenMovementLoop);
+    this.startChickenAnimationLoop();
+    this.startChickenMovementLoop();
+  }
 
-    startChickenMovementLoop() {
-        this.chickenMovementLoop = setInterval(() => {
-            if (!this.isDead()) {
-                this.checkCharacterDirection();
-            }
-        }, 1000 / 60);
-    }
+  /**
+   * Plays walking animation, or dead image once when defeated.
+   */
+  startChickenAnimationLoop() {
+    this.chickenAnimationLoop = setInterval(() => {
+      if (this.isDead()) return this.playDeadOnce();
+      this.playAnimation(this.IMAGES_WALKING);
+    }, 150);
+  }
 
-    checkCharacterDirection() {
-        if (this.character) {
-            if (this.character.x > this.x + 10) {
-                this.moveRight();
-                this.otherDirection = true;
-            } else if (this.character.x < this.x - 10) {
-                this.moveLeft();
-                this.otherDirection = false;
-            }
-        } else {
-            this.moveLeft();
-            this.otherDirection = false;
-        }
-    }
+  /**
+   * Moves continuously while alive.
+   */
+  startChickenMovementLoop() {
+    this.chickenMovementLoop = setInterval(() => {
+      if (!this.isDead()) this.checkCharacterDirection();
+    }, 1000 / 60);
+  }
 
-    stopAllLoops() {
-        super.stopAllLoops();
+  /**
+   * Sets movement direction based on character position (fallback: move left).
+   */
+  checkCharacterDirection() {
+    if (!this.character) { this.moveLeft(); this.otherDirection = false; return; }
+    if (this.character.x > this.x + 10) { this.moveRight(); this.otherDirection = true; return; }
+    if (this.character.x < this.x - 10) { this.moveLeft(); this.otherDirection = false; }
+  }
 
-        if (this.chickenAnimationLoop) {
-            clearInterval(this.chickenAnimationLoop);
-            this.chickenAnimationLoop = null;
-        }
-        if (this.chickenMovementLoop) {
-            clearInterval(this.chickenMovementLoop);
-            this.chickenMovementLoop = null;
-        }
-    }
+  /**
+   * Plays the dead sprite once (prevents re-playing every frame).
+   */
+  playDeadOnce() {
+    if (this.isDeadAnimationPlayed) return;
+    this.playAnimation(this.IMAGE_DEAD);
+    this.isDeadAnimationPlayed = true;
+  }
 
-    startAllLoops() {
-        if (!this.isDead()) {
-            this.animate();
-        }
-    }
+  /**
+   * Stops gravity and clears chicken-specific loops.
+   */
+  stopAllLoops() {
+    super.stopAllLoops();
+    if (this.chickenAnimationLoop) { clearInterval(this.chickenAnimationLoop); this.chickenAnimationLoop = null; }
+    if (this.chickenMovementLoop) { clearInterval(this.chickenMovementLoop); this.chickenMovementLoop = null; }
+  }
+
+  /**
+   * Restarts loops if the chicken is still alive.
+   */
+  startAllLoops() {
+    if (!this.isDead()) this.animate();
+  }
 }

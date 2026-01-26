@@ -5,6 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .menu-container {
@@ -86,8 +87,8 @@
 }
 
 .control-jump img {
-  width: 115px;
-  aspect-ratio: 2 / 1;
+  width: 72px;
+  height: 56px;
 }
 
 @media screen and (min-width: 321px) and (max-width: 844px) and (orientation: portrait) {
@@ -128,14 +129,20 @@
 }
 
 .menu-container {
-  max-height: 100dvh;
   overflow-y: auto; 
   scrollbar-gutter: stable;
 }
 
-@media screen and (max-width: 844px) {
+@media (max-height: 380px) {
   .menu-main {
-    gap: 32px;
-    padding-bottom: 20px;
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
+}
+
+@media (max-height: 330px) {
+  .menu-main {
+    transform: scale(0.75);
+    transform-origin: top center;
   }
 }

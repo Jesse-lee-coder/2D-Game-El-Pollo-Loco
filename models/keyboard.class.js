@@ -1,80 +1,135 @@
+/**
+ * Handles keyboard and touch input for the game.
+ * Maps key presses and touch events to movement/action flags.
+ */
 class Keyboard {
-    
-    LEFT = false;
-    RIGHT = false;
-    UP = false;
-    DOWN = false;
-    SPACE = false;
-    D = false;
+  /** @type {boolean} */ LEFT = false;
+  /** @type {boolean} */ RIGHT = false;
+  /** @type {boolean} */ UP = false;
+  /** @type {boolean} */ DOWN = false;
+  /** @type {boolean} */ SPACE = false;
+  /** @type {boolean} */ D = false;
 
-    constructor() {
-        this.setupKeyboardControls();
-        this.setupTouchControls();
-    }
+  /**
+   * Creates the keyboard handler and registers input events.
+   */
+  constructor() {
+    this.registerKeyEvents();
+    this.setupTouchControls();
+  }
 
-    setupTouchControls() {
-        document.getElementById('btn_left').addEventListener('touchstart', (event) => {
-            event.preventDefault();
-            this.LEFT = true;
-        });
-        document.getElementById('btn_left').addEventListener('touchend', (event) => {
-            event.preventDefault();
-            this.LEFT = false;
-        });
+  /**
+   * Registers keyboard keydown and keyup listeners.
+   */
+  registerKeyEvents() {
+    this.registerKeyDown();
+    this.registerKeyUp();
+  }
 
-        document.getElementById('btn_right').addEventListener('touchstart', (event) => {
-            event.preventDefault();
-            this.RIGHT = true;
-        });
-        document.getElementById('btn_right').addEventListener('touchend', (event) => {
-            event.preventDefault();
-            this.RIGHT = false;
-        });
+  /**
+   * Handles keydown events and sets movement flags.
+   */
+  registerKeyDown() {
+    window.addEventListener("keydown", (event) => {
+      const code = event.keyCode;
+      if (code === 32) this.SPACE = true;
+      if (code === 37) this.LEFT = true;
+      if (code === 38) this.UP = true;
+      if (code === 39) this.RIGHT = true;
+      if (code === 40) this.DOWN = true;
+      if (code === 68) this.D = true;
+    });
+  }
 
-        document.getElementById('btn_jump').addEventListener('touchstart', (event) => {
-            event.preventDefault();
-            this.SPACE = true;
-        });
-        document.getElementById('btn_jump').addEventListener('touchend', (event) => {
-            event.preventDefault();
-            this.SPACE = false;
-        });
+  /**
+   * Handles keyup events and resets movement flags.
+   */
+  registerKeyUp() {
+    window.addEventListener("keyup", (event) => {
+      const code = event.keyCode;
+      if (code === 32) this.SPACE = false;
+      if (code === 37) this.handleStopLeft();
+      if (code === 39) this.handleStopRight();
+      if (code === 38) this.UP = false;
+      if (code === 40) this.DOWN = false;
+      if (code === 68) this.D = false;
+    });
+  }
 
-        document.getElementById('btn_throw').addEventListener('touchstart', (event) => {
-            event.preventDefault();
-            this.D = true;
-        });
-        document.getElementById('btn_throw').addEventListener('touchend', (event) => {
-            event.preventDefault();
-            this.D = false;
-        });
-    }
+  /**
+   * Stops left movement and walking sound.
+   */
+  handleStopLeft() {
+    this.LEFT = false;
+    this.stopWalkingSound();
+  }
 
-    setupKeyboardControls() {
-        window.addEventListener('keydown', (event) => {
-            if (event.keyCode === 32) keyboard.SPACE = true;
-            if (event.keyCode === 37) keyboard.LEFT = true;
-            if (event.keyCode === 38) keyboard.UP = true;
-            if (event.keyCode === 39) keyboard.RIGHT = true;
-            if (event.keyCode === 40) keyboard.DOWN = true;
-            if (event.keyCode === 68) keyboard.D = true;
-        });
+  /**
+   * Stops right movement and walking sound.
+   */
+  handleStopRight() {
+    this.RIGHT = false;
+    this.stopWalkingSound();
+  }
 
-        window.addEventListener('keyup', (event) => {
-            if (event.keyCode === 32) keyboard.SPACE = false;
-            if (event.keyCode === 37) {
-                keyboard.LEFT = false;
-                character_walking.pause();
-                character_walking.currentTime = 0;
-            }
-            if (event.keyCode === 39) {
-                keyboard.RIGHT = false;
-                character_walking.pause();
-                character_walking.currentTime = 0;
-            }
-            if (event.keyCode === 38) keyboard.UP = false;
-            if (event.keyCode === 40) keyboard.DOWN = false;
-            if (event.keyCode === 68) keyboard.D = false;
-        });
-    }
+  /**
+   * Sets up touch controls for mobile devices.
+   */
+  setupTouchControls() {
+    const left = document.getElementById("btn_left");
+    const right = document.getElementById("btn_right");
+    const jump = document.getElementById("btn_jump");
+    const thr = document.getElementById("btn_throw");
+    if (!left || !right || !jump || !thr) return;
+
+    this.bindMoveButton(left, "LEFT");
+    this.bindMoveButton(right, "RIGHT");
+    this.bindSimpleButton(jump, "SPACE");
+    this.bindSimpleButton(thr, "D");
+  }
+
+  /**
+   * Binds a movement button (left/right) to touch events.
+   * @param {HTMLElement} button
+   * @param {keyof Keyboard} prop
+   */
+  bindMoveButton(button, prop) {
+    button.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      this[prop] = true;
+    });
+
+    button.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      this[prop] = false;
+      this.stopWalkingSound();
+    });
+  }
+
+  /**
+   * Binds a simple action button (jump/throw) to touch events.
+   * @param {HTMLElement} button
+   * @param {keyof Keyboard} prop
+   */
+  bindSimpleButton(button, prop) {
+    button.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      this[prop] = true;
+    });
+
+    button.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      this[prop] = false;
+    });
+  }
+
+  /**
+   * Stops the walking sound when no horizontal movement is active.
+   */
+  stopWalkingSound() {
+    if (typeof character_walking === "undefined") return;
+    if (this.LEFT || this.RIGHT) return;
+    safePause(character_walking);
+    character_walking.currentTime = 0;
+  }
 }

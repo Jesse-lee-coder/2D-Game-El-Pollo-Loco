@@ -1,211 +1,364 @@
+/** @type {boolean} True if sound is muted. */
 let isMuted = true;
-let isGameFinish = false;
+/** @type {boolean} True if touch controls are active. */
 let isTouchDeviceGlobal = false;
-let initialCanvasRef;
-const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+/** @type {boolean} True if the user has interacted (needed for reliable audio playback). */
+window.userInteracted = false;
 
+/** Marks that the user interacted at least once (audio can safely start afterwards). */
+function markUserInteracted() {
+  window.userInteracted = true;
+}
+
+/** Registers one-time listeners to unlock audio after the first user interaction. */
+function initUserInteractionTracking() {
+  document.addEventListener("pointerdown", markUserInteracted, { once: true });
+  document.addEventListener("keydown", markUserInteracted, { once: true });
+}
+initUserInteractionTracking();
+
+/** @param {string} id @returns {HTMLElement|null} */
+function byId(id) {
+  return document.getElementById(id);
+}
+
+/** @param {Element|null} el @param {boolean} show */
+function setFlexVisible(el, show) {
+  if (!el) return;
+  el.classList.toggle("d-flex", show);
+  el.classList.toggle("d-none", !show);
+}
+
+/** @param {HTMLImageElement|null} img @param {string} src */
+function setImgSrc(img, src) {
+  if (img) img.src = src;
+}
+
+/**
+ * Shows or hides the mobile navigation.
+ * Kept for compatibility because other files call this function.
+ * @param {boolean} visible
+ */
+function setMobileNavVisible(visible) {
+  const nav = byId("mobile_nav");
+  if (!nav) return;
+  nav.classList.toggle("d-flex", visible);
+  nav.classList.toggle("d-none", !visible);
+}
+
+/** @returns {boolean} True if device supports touch input. */
 function isTouchDevice() {
-    return ('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0);
+  return "ontouchstart" in window || navigator.maxTouchPoints > 0;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const { mobileNavRef } = getRefs();
-    updateTouchDeviceStatus(mobileNavRef);
-    const mediaQueryTouch = window.matchMedia('(any-pointer: coarse)');
-    mediaQueryTouch.addEventListener('change', () => {
-        updateTouchDeviceStatus(mobileNavRef);
-    });
-});
-
-function updateTouchDeviceStatus(mobileNavElement) {
-    if (mobileNavElement) {
-        if (isTouchDevice()) {
-            mobileNavElement.classList.add('d-flex');
-            mobileNavElement.classList.remove('d-none');
-        } else {
-            mobileNavElement.classList.remove('d-flex');
-            mobileNavElement.classList.add('d-none');
-        }
-    }
+/** @returns {boolean} True if mobile nav should be shown. */
+function shouldShowMobileNav() {
+  const tabletLike = window.innerWidth <= 1400 || window.innerHeight <= 950;
+  return isTouchDevice() && tabletLike;
 }
 
-function getRefs() {
-    return {
-        soundBoxImgPlayRef: document.getElementById('sound_box_img_play'),
-        fullscreenRef: document.getElementById('fullscreen'),
-        mobileNavRef: document.getElementById('mobile_nav'),
-        canvasRef: document.getElementById('canvas'),
-        fullscreenRef: document.getElementById('fullscreen'),
-        fullscreenImgRef: document.getElementById('fullscreen_img'),
-        pausePlayIconRef: document.getElementById('game_pause_box_img_play'),
-        overlayGameOverRef: document.getElementById('overlay_game_over'),
-        overlayWinningRef: document.getElementById('overlay_winning'),
-    };
+
+/** @returns {boolean} True if controls should be moved into the game screen. */
+function shouldControlsBeInsideGameScreen() {
+  const lowHeight = window.innerHeight <= 460;
+  return shouldShowMobileNav() || lowHeight;
 }
 
+/** @returns {boolean} True if the game should look like fullscreen even without fullscreen. */
+function shouldForceFullscreenLook() {
+  const compactLandscape = window.innerHeight <= 380 && window.innerWidth <= 820;
+  const portraitTablet = window.innerWidth <= 900 && window.innerHeight >= 900;
+  return compactLandscape || portraitTablet;
+}
+
+/** @param {HTMLElement|null} navElement */
+function updateTouchDeviceStatus(navElement) {
+  const show = !!navElement && shouldShowMobileNav();
+  setFlexVisible(navElement, show);
+  isTouchDeviceGlobal = show;
+}
+
+/**
+ * Applies layout rules for small screens and mobile controls.
+ */
+function applyResponsiveGameMode() {
+  const gameScreen = byId("fullscreen");
+  if (!gameScreen) return;
+  handleMobileNavPlacement(gameScreen);
+  applyFullscreenLook(gameScreen);
+}
+
+/**
+ * Moves and shows the mobile navigation when needed.
+ * @param {HTMLElement} gameScreen
+ */
+function handleMobileNavPlacement(gameScreen) {
+  const mobileNav = byId("mobile_nav");
+  if (!mobileNav) return;
+
+  if (shouldControlsBeInsideGameScreen()) {
+    moveMobileNavIntoGame(gameScreen, mobileNav);
+    return;
+  }
+  gameScreen.classList.remove("has-mobile-nav");
+}
+
+/**
+ * Appends the mobile nav to the game screen and shows it.
+ * @param {HTMLElement} gameScreen
+ * @param {HTMLElement} mobileNav
+ */
+function moveMobileNavIntoGame(gameScreen, mobileNav) {
+  if (mobileNav.parentElement !== gameScreen) gameScreen.appendChild(mobileNav);
+  setFlexVisible(mobileNav, true);
+  gameScreen.classList.add("has-mobile-nav");
+}
+
+/**
+ * Applies forced fullscreen styles for small screens.
+ * @param {HTMLElement} gameScreen
+ */
+function applyFullscreenLook(gameScreen) {
+  const fullscreenBox = document.querySelector(".fullscreen-box");
+  const force = shouldForceFullscreenLook();
+
+  gameScreen.classList.toggle("small-screen-mode", force);
+  gameScreen.classList.toggle("force-fullscreen", force);
+  if (fullscreenBox) fullscreenBox.style.display = force ? "none" : "";
+}
+
+/** Initializes listeners that keep responsive layout up-to-date. */
+function initResponsiveListeners() {
+  const mobileNav = byId("mobile_nav");
+  updateTouchDeviceStatus(mobileNav);
+
+  const apply = () => {
+    updateTouchDeviceStatus(mobileNav);
+    applyResponsiveGameMode();
+  };
+
+  const mq = window.matchMedia("(any-pointer: coarse)");
+  mq.addEventListener("change", apply);
+  window.addEventListener("resize", apply);
+}
+
+/** Go back to start page. */
 function back() {
-    window.history.back();
+  window.location.href = "index.html";
 }
 
+/** @param {string} url */
 function navigateTo(url) {
-    window.location.href = url;
+  window.location.href = url;
 }
 
-function initPlay() {
-    updateSoundToggleDisplay();
+/** Loads the saved sound preference from localStorage. */
+function loadSoundPreference() {
+  const saved = localStorage.getItem("soundMuted");
+  isMuted = saved === "true";
 }
 
-async function startGame() {
-    const { canvasRef } = getRefs();
-
-    try {
-        handleTry(canvasRef);
-    } catch (error) {
-        console.error("Error starting the game:", error);
-    }
-}
-
-async function handleTry(canvasRef) {
-    initPlay();
-    await setupLevel();
-
-    if (!canvasRef) {
-        throw new Error("Canvas element with ID 'canvas' was not found.");
-    }
-
-    initialCanvasRef = canvasRef;
-    world = new World(initialCanvasRef, keyboard);
-
-    if (!world) {
-        throw new Error("The game world could not be initialized.");
-    }
-}
-
-async function resetGame() {
-    const { overlayWinningRef, overlayGameOverRef, canvasRef, pausePlayIconRef } = getRefs();
-
-    stopAllLoops();
-    resetAudioPlayback();
-    resetGameUIAndState(overlayWinningRef, overlayGameOverRef, canvasRef, pausePlayIconRef);
-    await initializeNewGameWorld();
-    startBackgroundMusic();
-}
-
-function resetAudioPlayback() {
-    const audioElements = [...endGameSounds, losing_audio, winning_audio];
-
-    audioElements.forEach(audio => {
-        if (audio && typeof audio.pause === 'function') {
-            audio.pause();
-            audio.currentTime = 0;
-        }
-    });
-}
-
-function resetGameUIAndState(overlayWinningRef, overlayGameOverRef, canvasRef, pausePlayIconRef) {
-    isGameFinish = false;
-    isGamePaused = false;
-
-    overlayGameOverRef.classList.remove('d-flex');
-    overlayWinningRef.classList.remove('d-flex');
-    canvasRef.classList.remove('d-none');
-
-    setIcon(pausePlayIconRef, 'icons/pause-icon.png', 'game pause icon', 'Pause');
-}
-
-async function initializeNewGameWorld() {
-    await setupLevel(); 
-
-    if (!initialCanvasRef) {
-        throw new Error("Canvas reference is missing. Cannot initialize new game world.");
-    }
-    world = new World(initialCanvasRef, keyboard);
-}
-
-function startBackgroundMusic() {
-    if (game_music && !isMuted) {
-        game_music.play();
-        game_music.volume = game_music_volume_loude;
-    }
-}
-
-function toggleSound() {
-    isMuted = !isMuted;
-    updateSoundToggleDisplay();
-}
-
+/** Updates UI icon + mutes/unmutes all game sounds. */
 function updateSoundToggleDisplay() {
-    const { soundBoxImgPlayRef } = getRefs();
-    const img = isMuted ? 'icons/volume-off.png' : 'icons/volume-on.png';
-    const audioStatus = isMuted ? 'Volume off' : 'Volume on';
-    const alt = isMuted ? 'voulume off icon' : 'volume on icon';
-    allGameSounds.forEach(sound => {
-        sound.muted = isMuted;
-    });
+  const img = /** @type {HTMLImageElement|null} */ (byId("sound_box_img_play"));
+  setImgSrc(img, isMuted ? "icons/volume-off.png" : "icons/volume-on.png");
 
-    soundBoxImgPlayRef.src = img;
-    soundBoxImgPlayRef.title = audioStatus;
-    soundBoxImgPlayRef.alt = alt;
+  if (!Array.isArray(allGameSounds)) return;
+  allGameSounds.forEach((sound) => (sound.muted = isMuted));
 }
 
-function fullscreen() {
-    if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
-        exitFullscreen();
-    } else {
-        const { fullscreenRef } = getRefs();
-        if (fullscreenRef) {
-            enterFullscreen(fullscreenRef);
-        } else {
-            enterFullscreen(document.documentElement);
-        }
-    }
+/** Initializes sound UI state. */
+function initPlay() {
+  loadSoundPreference();
+  updateSoundToggleDisplay();
 }
 
-function enterFullscreen(element) {
-    if (element.requestFullscreen) {
-        element.requestFullscreen();
-    } else if (element.msRequestFullscreen) {
-        element.msRequestFullscreen();
-    } else if (element.webkitRequestFullscreen) {
-        element.webkitRequestFullscreen();
-    }
-    const { fullscreenRef, canvasRef, fullscreenImgRef } = getRefs();
-    if (canvasRef) {
-        setAllPropertiesForEnterFullscreen(fullscreenRef, canvasRef, fullscreenImgRef);
-    }
+/** @returns {boolean} True if audio can be started/resumed now. */
+function canStartAudioNow() {
+  return !!window.userInteracted && !isMuted;
 }
 
-function setAllPropertiesForEnterFullscreen(fullscreenRef, canvasRef, fullscreenImgRef) {
-    canvasRef.style.width = '100%';
-    canvasRef.style.height = '100%';
-    canvasRef.style.borderRadius = '0px';
-    fullscreenRef.style.borderRadius = '0px';
-    fullscreenImgRef.src = 'icons/minimize-fullscreen.png';
-    fullscreenImgRef.alt = 'minimize fullscreen icon';
-    fullscreenImgRef.title = 'minimize fullscreen';
+/** Toggles sound mute state and stores it. */
+function toggleSound() {
+  isMuted = !isMuted;
+  localStorage.setItem("soundMuted", String(isMuted));
+  updateSoundToggleDisplay();
+
+  if (isMuted) {
+    if (typeof muteAllSoundsNow === "function") muteAllSoundsNow();
+    return;
+  }
+  if (!canStartAudioNow()) return;
+  if (typeof resumeAllAudio === "function") resumeAllAudio();
+  else if (typeof playGameMusic === "function") playGameMusic();
 }
 
+/**
+ * Immediately mutes and stops all sounds.
+ * Useful when leaving the game or toggling mute on.
+ */
+function muteAllSoundsNow() {
+  if (typeof pauseAllAudio === "function") pauseAllAudio();
+  if (typeof pauseSpecificAudio === "function") pauseSpecificAudio();
+  if (!Array.isArray(allGameSounds)) return;
+  allGameSounds.forEach((s) => { if (s) s.muted = true; });
+}
+
+/** @param {boolean} isOn */
+function setCanvasFullscreenStyles(isOn) {
+  const canvas = /** @type {HTMLCanvasElement|null} */ (byId("canvas"));
+  if (!canvas) return;
+  canvas.style.width = isOn ? "100vw" : "";
+  canvas.style.height = isOn ? "100vh" : "";
+  canvas.style.maxWidth = isOn ? "100vw" : "";
+  canvas.style.maxHeight = isOn ? "100vh" : "";
+  canvas.style.borderRadius = isOn ? "0" : "";
+}
+
+/** Enters fullscreen mode for the given element. @param {HTMLElement} el */
+function enterFullscreen(el) {
+  if (el.requestFullscreen) el.requestFullscreen();
+  setCanvasFullscreenStyles(true);
+
+  const icon = /** @type {HTMLImageElement|null} */ (byId("fullscreen_img"));
+  setImgSrc(icon, "icons/minimize-fullscreen.png");
+  el.classList.add("fullscreen-active");
+  applyResponsiveGameMode();
+}
+
+/** Exits fullscreen and resets UI state. */
 function exitFullscreen() {
-    if (document.exitFullscreen) {
-        document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-    }
+  if (document.exitFullscreen) document.exitFullscreen();
+  setCanvasFullscreenStyles(false);
 
-    const { fullscreenRef, canvasRef, fullscreenImgRef } = getRefs();
+  const icon = /** @type {HTMLImageElement|null} */ (byId("fullscreen_img"));
+  setImgSrc(icon, "icons/maximize-fullscreen.png");
 
-    if (canvasRef) {
-        removeAllPropertiesForExitFullscreen(fullscreenRef, canvasRef, fullscreenImgRef);
-    }
+  const el = byId("fullscreen");
+  if (el) el.classList.remove("fullscreen-active");
+  applyResponsiveGameMode();
 }
 
-function removeAllPropertiesForExitFullscreen(fullscreenRef, canvasRef, fullscreenImgRef) {
-    canvasRef.style.width = '';
-    canvasRef.style.height = '';
-    canvasRef.style.borderRadius = '';
-    fullscreenRef.style.borderRadius = '';
-    fullscreenImgRef.src = 'icons/maximize-fullscreen.png';
-    fullscreenImgRef.alt = 'maximize fullscreen icon';
-    fullscreenImgRef.title = 'maximize fullscreen';
+/** Toggles fullscreen mode for the game screen. */
+function fullscreen() {
+  const el = byId("fullscreen");
+  if (!el) return;
+  document.fullscreenElement ? exitFullscreen() : enterFullscreen(el);
 }
+
+/** Hides credits tooltip when rotate overlay is visible. */
+function toggleCredits() {
+  const overlay = byId("overlay_rotate_device");
+  const credits = document.querySelector(".footer-credits");
+  if (!overlay || !credits) return;
+  const visible = window.getComputedStyle(overlay).display !== "none";
+  credits.classList.toggle("hide-credits", visible);
+}
+setInterval(toggleCredits, 200);
+
+/** @param {HTMLElement|null} overlay */
+function hideOverlay(overlay) {
+  if (!overlay) return;
+  overlay.classList.add("d-none");
+  overlay.classList.remove("d-flex");
+}
+
+/** Resets pause flag + pause icon UI. */
+function resetPauseStateAndUI() {
+  if (typeof isGamePaused !== "undefined") isGamePaused = false;
+  const img = /** @type {HTMLImageElement|null} */ (byId("game_pause_box_img_play"));
+  if (!img) return;
+  img.src = "icons/pause-icon.png";
+  img.title = "Pause";
+}
+
+/** @param {boolean} resetFinish */
+function stopAndPauseGame(resetFinish) {
+  if (typeof stopAllLoops === "function") stopAllLoops();
+  if (typeof pauseAllAudio === "function") pauseAllAudio();
+  if (typeof pauseSpecificAudio === "function") pauseSpecificAudio();
+
+  if (resetFinish && typeof isGameFinish !== "undefined") isGameFinish = false;
+  if (typeof isGamePaused !== "undefined") isGamePaused = false;
+}
+
+/** Hides start/menu/game screens. */
+function hideAllScreens() {
+  const start = byId("start_screen");
+  const menu = byId("menu_screen");
+  const game = byId("game_screen");
+  if (start) start.classList.add("d-none");
+  if (menu) menu.classList.add("d-none");
+  if (game) game.classList.add("d-none");
+}
+
+/** Handles leaving the game screen. */
+function handleNonGameScreen() {
+  if (document.fullscreenElement && typeof exitFullscreen === "function") exitFullscreen();
+  stopAndPauseGame(false);
+
+  setMobileNavVisible(false);
+  hideOverlay(byId("overlay_winning"));
+  hideOverlay(byId("overlay_game_over"));
+  resetPauseStateAndUI();
+}
+
+/** @param {HTMLElement} game */
+function showGameScreen(game) {
+  game.classList.remove("d-none");
+  if (typeof isGameFinish !== "undefined") isGameFinish = false;
+  if (typeof isGamePaused !== "undefined") isGamePaused = false;
+
+  if (typeof init === "function") init();
+  if (canStartAudioNow() && typeof playGameMusic === "function") playGameMusic();
+
+  resetPauseStateAndUI();
+  updateTouchDeviceStatus(byId("mobile_nav"));
+  applyResponsiveGameMode();
+}
+
+/** @param {"start"|"menu"|"game"} screen */
+function showScreen(screen) {
+  if (screen !== "game") handleNonGameScreen();
+  hideAllScreens();
+
+  const start = byId("start_screen");
+  const menu = byId("menu_screen");
+  const game = byId("game_screen");
+
+  if (screen === "start" && start) start.classList.remove("d-none");
+  if (screen === "menu" && menu) menu.classList.remove("d-none");
+  if (screen === "game" && game) showGameScreen(game);
+}
+
+/** Resets overlays and restarts the game. */
+function resetGame() {
+  stopAndPauseGame(true);
+  hideOverlay(byId("overlay_winning"));
+  hideOverlay(byId("overlay_game_over"));
+  resetPauseStateAndUI();
+  showScreen("game");
+}
+
+/** Initializes the app when the DOM is ready. */
+function initApp() {
+  initResponsiveListeners();
+  initPlay();
+  applyResponsiveGameMode();
+}
+document.addEventListener("DOMContentLoaded", initApp);
+
+/** Logs global errors to help debugging. */
+function logGlobalError(e) {
+  console.error("Global error:", e.message, "at",
+    e.filename + ":" + e.lineno + ":" + e.colno, e.error);
+}
+window.addEventListener("error", logGlobalError);
+
+/** Handles global promise rejections (keeps console clean for expected audio aborts). */
+function handleUnhandledRejection(e) {
+  const r = e.reason;
+  if (r && (r.name === "AbortError" || r.name === "NotAllowedError")) { e.preventDefault(); return; }
+  console.error("Unhandled promise rejection:", r);
+}
+window.addEventListener("unhandledrejection", handleUnhandledRejection);
